@@ -33,6 +33,7 @@ temp = int(pageNum)
 if(pageNum-temp!=0): pageNum=temp+1
 
 results = []
+RESULT_DIRECTORY = '..'
 for page in count(1):
     script = 'getMySizeSet(0,%d,2)'%page #js코드
     driver.execute_script(script) #js실행
@@ -43,14 +44,27 @@ for page in count(1):
     
     mySizeLists = soup.select("#goodsMySizeList > tbody > tr")
     for mySizeList in mySizeLists:
-        print(mySizeList.text, page)
+        strings = list(mySizeList.strings)
+        print(strings)
+        if strings[0]=='해당 범위로 등록된 사이즈 리뷰가 없습니다.':
+            continue
+        if strings[0]=='키':
+            continue
+        height = strings[0]
+        weight = strings[2]
+        fit = strings[4]
+        size = strings[6]
+        evaluation = strings[8]
+        results.append((height,weight,fit,size,evaluation))
     
+    if page==10:
+        break
     next = soup.select("#mySizePaging")
     if next is None:
         break
 
-
-
+table = pd.DataFrame(results, columns=['height','weight','fit','size','evaluation'])
+table.to_csv('{0}/table_review.csv'.format(RESULT_DIRECTORY), encoding="utf-8", mode='w')
 
 #results = soup.find_all('table', id='goodsMySizeList')
 #print(results)
