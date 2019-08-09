@@ -18,28 +18,52 @@ html = driver.page_source
 # HTML 소스코드를 파이썬 객체로 변환
 soup = BeautifulSoup(html, 'html.parser')
 
-additionalInfos = soup.select("div.wear > div > dl")
+# 성별/옷분류/모델명
+category = soup.select("div.contents > section.flow > span")
+sex = category[2].text
+branch = category[3].text
+print(sex, branch)
+cModel = soup.select_one("div.tag > h3.brand > small").text
+print(cModel)
+
+# 추가 정보
+infos = []
+info = []
+RESULT_DIRECTORY = '../info/'
+additionalInfos = soup.select("div.wear > div > dl > dd > em.on")
 for additionalInfo in additionalInfos:
-    print(additionalInfo.text)
+    #print(additionalInfo.text)
+    strings = list(additionalInfo.strings)
+    print(strings[0])
+    if(strings[0]=='\t가을\n\t'): continue
+    info.append(strings[0])
 
-clothSizes = soup.select("table.tbl_info[summary='Size'] > tbody > tr")
-for clothSize in clothSizes:
-    print(clothSize.text)
+infos.append((cModel,sex,branch,info[0],info[1],info[2],info[3]))
+table = pd.DataFrame(infos, columns=['model','sex','branch','season','expansion','reflection','lining'])
+name = '{0}/table_info_'+cModel+'.csv'
+table.to_csv(name.format(RESULT_DIRECTORY), encoding="utf-8", mode='w')
+
+# 실측 사이즈
+#clothSizes = soup.select("table.tbl_info[summary='Size'] > tbody > tr")
+#for clothSize in clothSizes:
+#    print(clothSize.text)
 
 
+# 고객 사이즈 리뷰
 reviewCnt = soup.find("em", id="review_size_h3_em").text
 pageNum = int(reviewCnt)/10
 temp = int(pageNum)
 if(pageNum-temp!=0): pageNum=temp+1
 
-results = []
-RESULT_DIRECTORY = '..'
+reviews = []
+RESULT_DIRECTORY = '../review'
 for page in count(1):
     script = 'getMySizeSet(0,%d,2)'%page #js코드
-    driver.execute_script(script) #js실행
+    if page!=1:
+        driver.execute_script(script) #js실행
     time.sleep(5)
-    
-    html = driver.page_source
+
+html = driver.page_source
     soup = BeautifulSoup(html, 'html.parser')
     
     mySizeLists = soup.select("#goodsMySizeList > tbody > tr")
@@ -55,16 +79,17 @@ for page in count(1):
         fit = strings[4]
         size = strings[6]
         evaluation = strings[8]
-        results.append((height,weight,fit,size,evaluation))
+        reviews.append((cModel,height,weight,fit,size,evaluation))
     
-    if page==10:
+    if page==pageNum:
         break
-    next = soup.select("#mySizePaging")
-    if next is None:
-        break
+#next = soup.select("#mySizePaging")
+#if next is None:
+#    break
 
-table = pd.DataFrame(results, columns=['height','weight','fit','size','evaluation'])
-table.to_csv('{0}/table_review.csv'.format(RESULT_DIRECTORY), encoding="utf-8", mode='w')
+table = pd.DataFrame(reviews, columns=['model','height','weight','fit','size','evaluation'])
+name = '{0}/table_review_'+cModel+'.csv'
+table.to_csv(name.format(RESULT_DIRECTORY), encoding="utf-8", mode='w')
 
 #results = soup.find_all('table', id='goodsMySizeList')
 #print(results)
