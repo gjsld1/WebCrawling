@@ -9,8 +9,7 @@ import pandas as pd
 driver = webdriver.Chrome(
                           executable_path="../webdriver/chromedriver"
                           )
-
-url="http://www.ssfshop.com/8seconds/GM0018121103186/good?dspCtgryNo=SFMA41A03&brandShopNo=BDMA07A01&brndShopId=8SBSS&keyword=&leftBrandNM=&utag=ref_cat:SFMA41A03$ref_brn:BDMA07A01$ref_gtp:GNRL_CTGRY$ref_br:8SBSS$set:1$dpos:9"
+url="http://www.ssfshop.com/8seconds/GM0019011419483/good?dspCtgryNo=SFMA41A03&brandShopNo=BDMA07A01&brndShopId=8SBSS&keyword=&leftBrandNM=&utag=ref_cat:SFMA41A03$ref_brn:BDMA07A01$ref_gtp:GNRL_CTGRY$ref_br:8SBSS$set:1$dpos:1"
 
 driver.get(url)
 time.sleep(5)
@@ -59,7 +58,7 @@ var3 = re.sub('\n', '', var_3)
 infos.append((cModel, sex, branch, var0, var1, var2, var3))
 table = pd.DataFrame(infos, columns=['model', 'sex', 'branch', 'season', 'expansion', 'reflection', 'lining'])
 name = '{0}/table_info_' + cModel + '.csv'
-table.to_csv(name.format(RESULT_DIRECTORY), encoding="utf-8", mode='w')
+table.to_csv(name.format(RESULT_DIRECTORY), encoding="utf-8", mode='w', index=False)
 
 reviewCnt = soup.find("em", id="review_size_h3_em").text
 pageNum = int(reviewCnt) / 10
@@ -109,6 +108,6 @@ html = driver.page_source
 
 table = pd.DataFrame(reviews, columns=['model', 'height', 'weight', 'fit', 'size', 'evaluation'])
 name = '{0}/table_review_' + cModel + '.csv'
-table.to_csv(name.format(RESULT_DIRECTORY), encoding="utf-8", mode='w')
+table.to_csv(name.format(RESULT_DIRECTORY), encoding="utf-8", mode='w', index=False)
 
-driver.close()s
+driver.close()
